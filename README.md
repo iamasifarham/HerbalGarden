@@ -19,5 +19,6 @@ If you are developing a production application, we recommend using TypeScript wi
 
 Create .env file inside the root folder and paste:
 
-VITE_GEMINI_API_KEY= your_Gemini_API_key_here
+VITE_GROQ_API_KEY= your_Groq_API_key_here
+
 VITE_PEXELS_API_KEY= your_Pexels_API_key_here

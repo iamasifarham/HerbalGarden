@@ -11,52 +11,48 @@ function App() {
   const PEXELS_API_KEY = import.meta.env.VITE_PEXELS_API_KEY;
 
   const searchGroq = async () => {
-  if (!query.trim()) return;
+    if (!query.trim()) return;
 
-  setLoading(true);
-  setOutput("");
-  setImage("");
+    setLoading(true);
+    setOutput("");
+    setImage("");
 
-  const prompt =
-    queryType === "plant"
-      ? `You are an expert herbalist. Provide HTML-formatted details for the plant "${query}" including Ayurvedic uses, medical benefits, and remedy preparation.`
-      : `You are an expert herbalist. Provide HTML-formatted remedies and beneficial plants for the disease "${query}".`;
+    const prompt =
+      queryType === "plant"
+        ? `You are an expert herbalist. Provide HTML-formatted details for the plant "${query}" including titles (in bold texts) AYURVEDIC USES:, MEDICAL BENEFITS:, and REMEDY PREPERATION:.`
+        : `You are an expert herbalist. Provide HTML-formatted remedies and beneficial plants for the disease "${query}".`;
 
-  try {
-    const res = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.4
-        }),
-      }
-    );
+    try {
+      const res = await fetch(
+        "https://api.groq.com/openai/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.4,
+          }),
+        }
+      );
 
-    const data = await res.json();
+      const data = await res.json();
 
-    const text =
-      data.choices?.[0]?.message?.content ||
-      "No response found.";
+      const text =
+        data.choices?.[0]?.message?.content || "No response found.";
 
-    setOutput(text.replace(/```html|```/gi, ""));
-    fetchImage();
-  } catch (err) {
-    console.error(err);
-    setOutput("Failed to fetch data.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+      setOutput(text.replace(/```html|```/gi, ""));
+      fetchImage();
+    } catch (err) {
+      console.error(err);
+      setOutput("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchImage = async () => {
     try {
@@ -79,8 +75,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-green-50 to-white flex items-center justify-center px-4">
-      <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden">
-        
+      {/* Wider container on desktop */}
+      <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-green-600 text-white px-6 py-5 text-center">
           <h1 className="text-3xl font-extrabold tracking-tight">
@@ -94,7 +90,7 @@ function App() {
         {/* Body */}
         <div className="p-6 space-y-4">
           <select
-            className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full md:w-1/3 rounded-xl border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             value={queryType}
             onChange={(e) => setQueryType(e.target.value)}
           >
@@ -116,26 +112,33 @@ function App() {
           <button
             onClick={searchGroq}
             disabled={loading}
-            className="w-full rounded-xl bg-green-600 py-2.5 text-white font-semibold hover:bg-green-700 disabled:opacity-50 transition"
+            className="w-full md:w-1/3 rounded-xl bg-green-600 py-2.5 text-white font-semibold hover:bg-green-700 disabled:opacity-50 transition"
           >
             {loading ? "Searching..." : "Search"}
           </button>
 
+          {/* Results layout */}
           {output && (
-            <div className="mt-4 rounded-2xl bg-green-50 border border-green-200 p-4 text-sm leading-relaxed text-gray-800">
-              <div
-                className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: output }}
-              />
-            </div>
-          )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+              {/* Text */}
+              <div className="lg:col-span-2 rounded-2xl bg-green-50 border border-green-200 p-4 text-sm leading-relaxed text-gray-800">
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: output }}
+                />
+              </div>
 
-          {image && (
-            <img
-              src={image}
-              alt="result"
-              className="w-full rounded-2xl shadow-md object-cover max-h-72"
-            />
+              {/* Image */}
+              {image && (
+                <div className="flex justify-center items-start">
+                  <img
+                    src={image}
+                    alt="result"
+                    className="rounded-2xl shadow-md object-cover max-h-[420px]"
+                  />
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
