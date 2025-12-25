@@ -7,46 +7,56 @@ function App() {
   const [image, setImage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+  const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
   const PEXELS_API_KEY = import.meta.env.VITE_PEXELS_API_KEY;
 
-  const searchGemini = async () => {
-    if (!query.trim()) return;
+  const searchGroq = async () => {
+  if (!query.trim()) return;
 
-    setLoading(true);
-    setOutput("");
-    setImage("");
+  setLoading(true);
+  setOutput("");
+  setImage("");
 
-    const prompt =
-      queryType === "plant"
-        ? `You are an expert herbalist. Provide HTML-formatted details for the plant "${query}" including Ayurvedic uses, medical benefits, and remedy preparation.`
-        : `You are an expert herbalist. Provide HTML-formatted remedies and beneficial plants for the disease "${query}".`;
+  const prompt =
+    queryType === "plant"
+      ? `You are an expert herbalist. Provide HTML-formatted details for the plant "${query}" including Ayurvedic uses, medical benefits, and remedy preparation.`
+      : `You are an expert herbalist. Provide HTML-formatted remedies and beneficial plants for the disease "${query}".`;
 
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        }
-      );
+  try {
+    const res = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.4
+        }),
+      }
+    );
 
-      const data = await res.json();
-      const text =
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "No response found.";
+    const data = await res.json();
 
-      setOutput(text.replace(/```html|```/gi, ""));
-      fetchImage();
-    } catch {
-      setOutput("Failed to fetch data.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const text =
+      data.choices?.[0]?.message?.content ||
+      "No response found.";
+
+    setOutput(text.replace(/```html|```/gi, ""));
+    fetchImage();
+  } catch (err) {
+    console.error(err);
+    setOutput("Failed to fetch data.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const fetchImage = async () => {
     try {
@@ -104,7 +114,7 @@ function App() {
           />
 
           <button
-            onClick={searchGemini}
+            onClick={searchGroq}
             disabled={loading}
             className="w-full rounded-xl bg-green-600 py-2.5 text-white font-semibold hover:bg-green-700 disabled:opacity-50 transition"
           >
